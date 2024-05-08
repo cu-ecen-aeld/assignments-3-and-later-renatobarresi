@@ -1,30 +1,21 @@
-#!/bin/sh
+#!/bin/bash
+writefile=$1
+writestr=$2
 
-filepath=$1
-stringToWrite=$2
-
-# validate inputs 
-if [ -z "$filepath" ] || [ -z "$stringToWrite" ]; then 
-    echo "No parameters specified" 
-    exit 1
+if [ ! "$#" -eq  2  ]
+then
+	exit 1
+elif [  "$#" -eq 1 ]
+then
+	echo "Missing one of arguments"
 fi
+writefile1="${writefile%/*}"
+#echo $writefile1
+mkdir -p $writefile1
+echo "$writestr" > "$writefile"
 
-# get the path and filename
-dirPath=$(dirname $filepath)
-fileName=$(basename $filepath)
-
-# validate the directory
-eval ls $dirPath &> /dev/null
-
-# if directory doesn't exist, create the directory
-if [ $? != 0 ]; then
-    echo "The directory: $dirPath doesn't exist, creating it"
-    dirPath=${filepath//"$fileName"/}
-    mkdir -p $dirPath  
+if [ ! "$?" ]
+then 
+	echo "File cannot be created"
+	exit 1
 fi
-
-cd $dirPath
-touch $fileName
-echo $stringToWrite > $fileName
-
-exit 0
