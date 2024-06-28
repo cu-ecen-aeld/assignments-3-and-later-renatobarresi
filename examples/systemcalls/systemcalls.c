@@ -41,7 +41,6 @@ bool do_system(const char *cmd)
 
 bool do_exec(int count, ...)
 {
-    int retVal;
     va_list args;
     va_start(args, count);
     char * command[count+1];
@@ -100,7 +99,7 @@ bool do_exec(int count, ...)
 
     va_end(args);
 
-    return retVal;
+    return true;
 }
 
 /**
@@ -132,6 +131,12 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
  *
 */
     FILE *fp = freopen(outputfile, "w+", stdout);
+
+    if (fp == NULL)
+    {
+        return false;
+    }
+
     for (i = 0; i < count; i++)
     {
         // Execute fork
@@ -165,6 +170,8 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
             }
         }
     }
+
+    fclose(fp);
 
     va_end(args);
 
