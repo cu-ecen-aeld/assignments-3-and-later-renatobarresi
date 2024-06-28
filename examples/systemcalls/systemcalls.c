@@ -1,5 +1,8 @@
 #include "systemcalls.h"
 
+#include <unistd.h>     // For fork and execv
+#include <sys/wait.h>   // For wait
+
 /**
  * @param cmd the command to execute with system()
  * @return true if the command in @param cmd was executed
@@ -9,13 +12,14 @@
 */
 bool do_system(const char *cmd)
 {
+    int retVal;
 
-/*
- * TODO  add your code here
- *  Call the system() function with the command set in the cmd
- *   and return a boolean true if the system() call completed with success
- *   or false() if it returned a failure
-*/
+    retVal = system(cmd);
+
+    if (retVal < 0)
+    {
+        return false;
+    }
 
     return true;
 }
@@ -58,10 +62,43 @@ bool do_exec(int count, ...)
  *   as second argument to the execv() command.
  *
 */
+    for (i = 0; i < count; i++)
+    {
+        // Execute fork
+        fflush(stdout); // Ensure buffers are flushed
+        pid_t pid = fork();
+
+        if (pid < 0)
+        {   
+            va_end(args);
+            return false;
+        }
+
+        // Just for the child
+        if (pid == 0)
+        {
+            if (execv(command[0], command[1]) == -1)
+            {
+                va_end(args);
+                return false;
+            }
+        }
+        else // Parent
+        {
+            // Wait (Only for the parent)
+            pid = waitpid(pid, null, 0);
+
+            if (pid < 0)
+            {
+                va_end(args);
+                return false;
+            }
+        }
+    }
 
     va_end(args);
 
-    return true;
+    return retVal;
 }
 
 /**
@@ -92,6 +129,40 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
  *   The rest of the behaviour is same as do_exec()
  *
 */
+    FILE *fp = freopen(outputfile, "w+", stdout);
+    for (i = 0; i < count; i++)
+    {
+        // Execute fork
+        fflush(stdout); // Ensure buffers are flushed
+        pid_t pid = fork();
+
+        if (pid < 0)
+        {   
+            va_end(args);
+            return false;
+        }
+
+        // Just for the child
+        if (pid == 0)
+        {
+            if (execv(command[0], command[1]) == -1)
+            {
+                va_end(args);
+                return false;
+            }
+        }
+        else // Parent
+        {
+            // Wait (Only for the parent)
+            pid = waitpid(pid, null, 0);
+
+            if (pid < 0)
+            {
+                va_end(args);
+                return false;
+            }
+        }
+    }
 
     va_end(args);
 
