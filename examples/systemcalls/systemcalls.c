@@ -2,6 +2,7 @@
 
 #include <unistd.h>     // For fork and execv
 #include <sys/wait.h>   // For wait
+#include <stdlib.h>
 
 /**
  * @param cmd the command to execute with system()
