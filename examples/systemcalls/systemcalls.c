@@ -41,6 +41,7 @@ bool do_system(const char *cmd)
 
 bool do_exec(int count, ...)
 {
+    int retVal;
     va_list args;
     va_start(args, count);
     char * command[count+1];
@@ -52,7 +53,7 @@ bool do_exec(int count, ...)
     command[count] = NULL;
     // this line is to avoid a compile warning before your implementation is complete
     // and may be removed
-    command[count] = command[count];
+    //command[count] = command[count];
 
 /*
  * TODO:
@@ -78,7 +79,7 @@ bool do_exec(int count, ...)
         // Just for the child
         if (pid == 0)
         {
-            if (execv(command[0], command[1]) == -1)
+            if (execv(command[0], &command[1]) == -1)
             {
                 va_end(args);
                 return false;
@@ -87,7 +88,7 @@ bool do_exec(int count, ...)
         else // Parent
         {
             // Wait (Only for the parent)
-            pid = waitpid(pid, null, 0);
+            pid = waitpid(pid, NULL, 0);
 
             if (pid < 0)
             {
@@ -120,7 +121,7 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
     command[count] = NULL;
     // this line is to avoid a compile warning before your implementation is complete
     // and may be removed
-    command[count] = command[count];
+    //command[count] = command[count];
 
 
 /*
@@ -146,7 +147,7 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
         // Just for the child
         if (pid == 0)
         {
-            if (execv(command[0], command[1]) == -1)
+            if (execv(command[0], &command[1]) == -1)
             {
                 va_end(args);
                 return false;
@@ -155,7 +156,7 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
         else // Parent
         {
             // Wait (Only for the parent)
-            pid = waitpid(pid, null, 0);
+            pid = waitpid(pid, NULL, 0);
 
             if (pid < 0)
             {
