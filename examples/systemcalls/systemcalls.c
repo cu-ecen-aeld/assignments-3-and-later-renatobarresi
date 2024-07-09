@@ -71,7 +71,7 @@ bool do_exec(int count, ...)
 
         if (pid < 0)
         {   
-            va_end(args);
+            //va_end(args);
             return false;
         }
 
@@ -79,7 +79,7 @@ bool do_exec(int count, ...)
         if (pid == 0)
         {
             execv(command[0], &command[0]);
-            va_end(args);
+            //va_end(args);
             return false;
         }
         else // Parent
