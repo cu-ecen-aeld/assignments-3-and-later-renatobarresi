@@ -80,6 +80,7 @@ bool do_exec(int count, ...)
         case 0:
         {
             execv(command[0], &command[0]);
+            printf("ERROR WITH EXECV!!!\r\n");
             va_end(args);
             retVal = false;
         }
