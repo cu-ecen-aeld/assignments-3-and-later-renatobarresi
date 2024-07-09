@@ -67,7 +67,6 @@ bool do_exec(int count, ...)
  *
 */
     // Execute fork
-    fflush(stdout); // Ensure buffers are flushed
     pid_t pid = fork();
 
     switch (pid)
@@ -80,10 +79,10 @@ bool do_exec(int count, ...)
         break;
         case 0:
         {
+            fflush(stdout); // Ensure buffers are flushed
             execv(command[0], &command[0]);
             printf("ERROR WITH EXECV!!!\r\n");
-            va_end(args);
-            retVal = false;
+            _exit(EXIT_FAILURE); // Exit child process immediately
         }
         break;
         default:
