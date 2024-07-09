@@ -3,6 +3,7 @@
 #include <unistd.h>     // For fork and execv
 #include <sys/wait.h>   // For wait
 #include <stdlib.h>
+#include <stdio.h>
 
 /**
  * @param cmd the command to execute with system()
@@ -110,6 +111,7 @@ bool do_exec(int count, ...)
 */
 bool do_exec_redirect(const char *outputfile, int count, ...)
 {
+    bool retVal = true;
     va_list args;
     va_start(args, count);
     char * command[count+1];
@@ -135,46 +137,48 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
 
     if (fp == NULL)
     {
-        return false;
+        retVal = false;
     }
 
     // Execute fork
-    fflush(stdout); // Ensure buffers are flushed
-    pid_t pid = fork();
-
-    if (pid < 0)
-    {   
-        va_end(args);
-        return false;
-    }
-
-    // Just for the child
-    if (pid == 0)
+    if (retVal == true)
     {
-        if (execv(command[0], &command[0]) == -1)
+        fflush(stdout); // Ensure buffers are flushed
+        pid_t pid = fork();
+
+        switch (pid)
         {
-            va_end(args);
-            fclose(fp);
-            return false;
+            case -1:
+            {
+                va_end(args);
+                retVal = false;
+            }
+            break;
+            case 0:
+            {
+                execv(command[0], &command[0]);
+                printf("ERROR WITH EXECV!!!\r\n");
+                va_end(args);
+                retVal = false;
+            }
+            break;
+            default:
+            {
+                pid = waitpid(pid, NULL, 0);
+
+                if (pid < 0)
+                {
+                    va_end(args);
+                    retVal = false;
+                }
+            }
+            break;
         }
+
+        fclose(fp);
     }
-    else // Parent
-    {
-        // Wait (Only for the parent)
-        pid = waitpid(pid, NULL, 0);
-
-        if (pid < 0)
-        {
-            va_end(args);
-            fclose(fp);
-            return false;
-        }
-    }
-
-
-    fclose(fp);
 
     va_end(args);
 
-    return true;
+    return retVal;
 }
