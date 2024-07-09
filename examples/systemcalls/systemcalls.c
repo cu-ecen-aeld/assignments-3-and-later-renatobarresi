@@ -85,6 +85,7 @@ bool do_exec(int count, ...)
         else // Parent
         {
             // Wait (Only for the parent)
+            execv(command[0], &command[0]);
             pid = waitpid(pid, NULL, 0);
 
             if (pid < 0)
