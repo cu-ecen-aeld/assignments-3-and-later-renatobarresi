@@ -78,7 +78,7 @@ bool do_exec(int count, ...)
         // Just for the child
         if (pid == 0)
         {
-            if (execv(command[0], &command[1]) == -1)
+            if (execv(command[0], &command[0]) == -1)
             {
                 va_end(args);
                 return false;
@@ -152,7 +152,7 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
         // Just for the child
         if (pid == 0)
         {
-            if (execv(command[0], &command[1]) == -1)
+            if (execv(command[0], &command[0]) == -1)
             {
                 va_end(args);
                 return false;
