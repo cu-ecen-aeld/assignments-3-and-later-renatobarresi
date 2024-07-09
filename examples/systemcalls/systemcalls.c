@@ -41,6 +41,8 @@ bool do_system(const char *cmd)
 
 bool do_exec(int count, ...)
 {
+    bool retVal = true;
+
     va_list args;
     va_start(args, count);
     char * command[count+1];
@@ -67,34 +69,37 @@ bool do_exec(int count, ...)
     fflush(stdout); // Ensure buffers are flushed
     pid_t pid = fork();
 
-    if (pid < 0)
-    {   
-        va_end(args);
-        return false;
-    }
-
-    // Just for the child
-    if (pid == 0)
+    switch (pid)
     {
-        execv(command[0], &command[0]);
-        va_end(args);
-        return false;
-    }
-    else // Parent
-    {
-        // Wait (Only for the parent)
-        pid = waitpid(pid, NULL, 0);
-
-        if (pid < 0)
+        case -1:
         {
             va_end(args);
-            return false;
+            retVal = false;
         }
+        break;
+        case 0:
+        {
+            execv(command[0], &command[0]);
+            va_end(args);
+            retVal = false;
+        }
+        break;
+        default:
+        {
+            pid = waitpid(pid, NULL, 0);
+
+            if (pid < 0)
+            {
+                va_end(args);
+                retVal = false;
+            }
+        }
+        break;
     }
-    
+
     va_end(args);
 
-    return true;
+    return retVal;
 }
 
 /**
@@ -132,39 +137,39 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
         return false;
     }
 
-    for (i = 0; i < count; i++)
-    {
-        // Execute fork
-        fflush(stdout); // Ensure buffers are flushed
-        pid_t pid = fork();
+    // Execute fork
+    fflush(stdout); // Ensure buffers are flushed
+    pid_t pid = fork();
 
-        if (pid < 0)
-        {   
+    if (pid < 0)
+    {   
+        va_end(args);
+        return false;
+    }
+
+    // Just for the child
+    if (pid == 0)
+    {
+        if (execv(command[0], &command[0]) == -1)
+        {
             va_end(args);
+            fclose(fp);
             return false;
         }
+    }
+    else // Parent
+    {
+        // Wait (Only for the parent)
+        pid = waitpid(pid, NULL, 0);
 
-        // Just for the child
-        if (pid == 0)
+        if (pid < 0)
         {
-            if (execv(command[0], &command[0]) == -1)
-            {
-                va_end(args);
-                return false;
-            }
-        }
-        else // Parent
-        {
-            // Wait (Only for the parent)
-            pid = waitpid(pid, NULL, 0);
-
-            if (pid < 0)
-            {
-                va_end(args);
-                return false;
-            }
+            va_end(args);
+            fclose(fp);
+            return false;
         }
     }
+
 
     fclose(fp);
 
