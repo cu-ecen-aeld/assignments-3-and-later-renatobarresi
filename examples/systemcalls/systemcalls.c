@@ -1,9 +1,11 @@
 #include "systemcalls.h"
 
-#include <unistd.h>     // For fork and execv
-#include <sys/wait.h>   // For wait
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <stdarg.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 /**
  * @param cmd the command to execute with system()
@@ -46,26 +48,14 @@ bool do_exec(int count, ...)
 
     va_list args;
     va_start(args, count);
-    char * command[count+1];
+    char *command[count + 1];
     int i;
-    for(i=0; i<count; i++)
+    for (i = 0; i < count; i++)
     {
         command[i] = va_arg(args, char *);
     }
     command[count] = NULL;
-    // this line is to avoid a compile warning before your implementation is complete
-    // and may be removed
-    //command[count] = command[count];
 
-/*
- * TODO:
- *   Execute a system command by calling fork, execv(),
- *   and wait instead of system (see LSP page 161).
- *   Use the command[0] as the full path to the command to execute
- *   (first argument to execv), and use the remaining arguments
- *   as second argument to the execv() command.
- *
-*/
     // Execute fork
     pid_t pid = fork();
 
@@ -73,25 +63,37 @@ bool do_exec(int count, ...)
     {
         case -1:
         {
+            // Fork failed
             va_end(args);
             retVal = false;
         }
         break;
         case 0:
         {
+            // Child process
             fflush(stdout); // Ensure buffers are flushed
-            execv(command[0], &command[0]);
-            printf("ERROR WITH EXECV!!!\r\n");
+            execv(command[0], command);
+
+            // If execv returns, it must have failed
+            perror("execv");
             _exit(EXIT_FAILURE); // Exit child process immediately
         }
         break;
         default:
         {
-            pid = waitpid(pid, NULL, 0);
+            // Parent process
+            int status;
+            pid_t result = waitpid(pid, &status, 0);
 
-            if (pid < 0)
+            if (result == -1)
             {
+                // waitpid failed
                 va_end(args);
+                retVal = false;
+            }
+            else if (WIFEXITED(status) && WEXITSTATUS(status) != 0)
+            {
+                // Child exited with a non-zero status
                 retVal = false;
             }
         }
