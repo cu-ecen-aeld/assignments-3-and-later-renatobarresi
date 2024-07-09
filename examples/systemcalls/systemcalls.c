@@ -133,7 +133,7 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
  *   The rest of the behaviour is same as do_exec()
  *
 */
-    FILE *fp = freopen(outputfile, "w+", stdout);
+    FILE *fp = freopen(outputfile, "w", stdout);
 
     if (fp == NULL)
     {
