@@ -78,11 +78,9 @@ bool do_exec(int count, ...)
         // Just for the child
         if (pid == 0)
         {
-            if (execv(command[0], &command[0]) == -1)
-            {
-                va_end(args);
-                return false;
-            }
+            execv(command[0], &command[0]);
+            va_end(args);
+            return false;
         }
         else // Parent
         {
