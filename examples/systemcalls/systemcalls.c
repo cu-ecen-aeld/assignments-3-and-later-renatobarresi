@@ -71,14 +71,14 @@ bool do_exec(int count, ...)
 
         if (pid < 0)
         {   
-            //va_end(args);
+            va_end(args);
             return false;
         }
 
         // Just for the child
         if (pid == 0)
         {
-            execv(command[0], &command[0]);
+            //execv(command[0], &command[0]);
             //va_end(args);
             return false;
         }
