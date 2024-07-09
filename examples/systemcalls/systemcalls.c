@@ -144,39 +144,46 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
     // Execute fork
     if (retVal == true)
     {
-        fflush(stdout); // Ensure buffers are flushed
-        pid_t pid = fork();
-
         switch (pid)
         {
             case -1:
             {
+                // Fork failed
                 va_end(args);
                 retVal = false;
             }
             break;
             case 0:
             {
-                execv(command[0], &command[0]);
-                printf("ERROR WITH EXECV!!!\r\n");
-                va_end(args);
-                retVal = false;
+                // Child process
+                fflush(stdout); // Ensure buffers are flushed
+                execv(command[0], command);
+
+                // If execv returns, it must have failed
+                //perror("execv");
+                _exit(EXIT_FAILURE); // Exit child process immediately
             }
             break;
             default:
             {
-                pid = waitpid(pid, NULL, 0);
+                // Parent process
+                int status;
+                pid_t result = waitpid(pid, &status, 0);
 
-                if (pid < 0)
+                if (result == -1)
                 {
+                    // waitpid failed
                     va_end(args);
+                    retVal = false;
+                }
+                else if (WIFEXITED(status) && WEXITSTATUS(status) != 0)
+                {
+                    // Child exited with a non-zero status
                     retVal = false;
                 }
             }
             break;
         }
-
-        fclose(fp);
     }
 
     va_end(args);
