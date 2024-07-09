@@ -144,6 +144,9 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
     // Execute fork
     if (retVal == true)
     {
+        // Execute fork
+        pid_t pid = fork();
+
         switch (pid)
         {
             case -1:
