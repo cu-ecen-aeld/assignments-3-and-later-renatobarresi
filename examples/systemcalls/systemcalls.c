@@ -63,39 +63,35 @@ bool do_exec(int count, ...)
  *   as second argument to the execv() command.
  *
 */
-    for (i = 0; i < count; i++)
+    // Execute fork
+    fflush(stdout); // Ensure buffers are flushed
+    pid_t pid = fork();
+
+    if (pid < 0)
+    {   
+        va_end(args);
+        return false;
+    }
+
+    // Just for the child
+    if (pid == 0)
     {
-        // Execute fork
-        fflush(stdout); // Ensure buffers are flushed
-        pid_t pid = fork();
+        execv(command[0], &command[0]);
+        va_end(args);
+        return false;
+    }
+    else // Parent
+    {
+        // Wait (Only for the parent)
+        pid = waitpid(pid, NULL, 0);
 
         if (pid < 0)
-        {   
+        {
             va_end(args);
             return false;
         }
-
-        // Just for the child
-        if (pid == 0)
-        {
-            //execv(command[0], &command[0]);
-            //va_end(args);
-            return false;
-        }
-        else // Parent
-        {
-            // Wait (Only for the parent)
-            execv(command[0], &command[0]);
-            pid = waitpid(pid, NULL, 0);
-
-            if (pid < 0)
-            {
-                va_end(args);
-                return false;
-            }
-        }
     }
-
+    
     va_end(args);
 
     return true;
